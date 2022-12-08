@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://unpkg.com/vue@next"></script>
+  <!-- 引入axios -->
+  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+  <title>Message Board</title>
+</head>
+
+<body>
+  <div id="app">
+    <div>
+      <div v-for="(message, index) in messages">
+        <div>title: {{message.title}}</div>
+        <div>content: {{message.content}}</div>
+        <div>--{{message.create_time}}</div>
+        <div><button @click="delete_message(message.id)">delete</button></div>
+        <hr>
+      </div>
+    </div>
+
+    <div>
+      title: <br>
+      <input type="text" v-model="title">
+    </div>
+
+    <div>
+      content: <br>
+      <textarea name="" id="" cols="30" rows="10" v-model="content"></textarea>
+    </div>
+
+    <div><button @click="submit">Submit</button></div>
+  </div>
+</body>
+
+<script>
+  Vue.createApp({
+    data(){
+      return{
+        messages: [],
+        title: '',
+        content: ''
+      }
+    },
+
+    // 在生命周期created时加载数据
+    created(){
+      this.loadMessage()
+    },
+
+    methods:{
+      // 获取数据库数据
+      loadMessage(){
+        var that = this
+        axios.get('/message/list').then(function(response){
+          console.log(response)
+          that.messages = response.data
+        })
+      },
+
+      submit(){
+        var that = this
+        console.log(this.title, this.content);
+        // 使用axios实现前端调用服务端
+        axios.post('/message/add', {
+          title: this.title,
+          content: this.content
+        }).then(function(response){
+          console.log(response)
+          // 即时显示新增的消息
+          that.loadMessage()
+        })
+      },
+
+      delete_message(id){
+        var that = this
+        axios.delete(`/message/delete?id=${id}`).then(function(response){
+          that.loadMessage()
+        })
+    }
+  }
+  }).mount('#app')
+</script>
+</html>
